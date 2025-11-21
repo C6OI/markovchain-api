@@ -1,0 +1,2 @@
+ALTER TABLE texts
+    ADD COLUMN "added_on" TIMESTAMP NOT NULL DEFAULT now();

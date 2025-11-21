@@ -1,0 +1,6 @@
+[database.pool]
+user = "marcha-api"
+password = "marcha-api"
+host = "localhost"
+dbname = "marcha-api"
+port = 5432
