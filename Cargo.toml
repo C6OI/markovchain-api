@@ -9,8 +9,14 @@ rand = "0.10.0-rc.5"
 tokio = { version = "1.48.0", features = ["full"] }
 tokio-postgres = "0.7.15"
 serde = { version = "1.0.228", features = ["derive"] }
-log = "0.4.28"
 futures = "0.3.31"
 config = "0.15.19"
 deadpool-postgres = { version = "0.14.1", features = ["serde"] }
 rand_distr = "0.6.0-rc.0"
+axum = { version = "0.8.7", features = ["http2"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.20", features = ["env-filter", "json"] }
+tracing-appender = "0.2.3"
+validator = { version = "0.20.0", features = ["derive"] }
+axum-valid = "0.24.0"
+tower-http = { version = "0.6.6", features = ["trace", "cors"] }

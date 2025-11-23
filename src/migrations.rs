@@ -27,7 +27,7 @@ impl Migrations {
                 continue;
             }
 
-            let name = entry.file_name().to_owned().into_string().unwrap();
+            let name = entry.file_name().clone().into_string().unwrap();
             let path = entry.path();
 
             let up_path = path.join("up.sql");
@@ -76,9 +76,9 @@ impl Migrations {
     }
 
     async fn create_table(&self, client: &Client) -> Result<()> {
-        log::debug!("Ensuring migration table {}", self.table_name);
+        tracing::debug!("Ensuring migration table {}", self.table_name);
         let query = format!(
-            r#"CREATE TABLE IF NOT EXISTS {} ( name TEXT NOT NULL PRIMARY KEY, executed_at TIMESTAMP NOT NULL DEFAULT NOW() )"#,
+            r"CREATE TABLE IF NOT EXISTS {} ( name TEXT NOT NULL PRIMARY KEY, executed_at TIMESTAMP NOT NULL DEFAULT NOW() )",
             self.table_name
         );
         self.execute_script(client, &query).await?;
@@ -86,7 +86,7 @@ impl Migrations {
     }
 
     async fn exists(&self, client: &Client, name: &String) -> Result<bool> {
-        log::trace!("Check if migration {} exists", name);
+        tracing::trace!("Check if migration {} exists", name);
         let query = format!("SELECT COUNT(*) FROM {} WHERE name = $1", self.table_name);
         let statement = client.prepare(&query).await?;
         let row = client.query_one(&statement, &[&name]).await?;
@@ -97,7 +97,7 @@ impl Migrations {
 
     /// Migrate all scripts up
     pub async fn up(&self, client: &Client) -> Result<()> {
-        log::info!("Migrating up to {}", self.table_name);
+        tracing::info!("Migrating up to table '{}'", self.table_name);
 
         self.create_table(client).await?;
 
@@ -106,7 +106,7 @@ impl Migrations {
 
         for name in names_sorted {
             if !self.exists(client, name).await? {
-                log::debug!("Applying migration {}", name);
+                tracing::debug!("Applying migration {}", name);
 
                 let path = &self.up[name];
                 let content = fs::read_to_string(path).await?;
@@ -119,7 +119,7 @@ impl Migrations {
 
     /// Migrate all scripts down
     pub async fn down(&self, client: &Client) -> Result<()> {
-        log::info!("Migrating down to {}", self.table_name);
+        tracing::info!("Migrating down to table '{}'", self.table_name);
 
         self.create_table(client).await?;
 
@@ -128,7 +128,7 @@ impl Migrations {
 
         for name in names_sorted {
             if self.exists(client, name).await? {
-                log::debug!("Deleting migration {}", name);
+                tracing::debug!("Deleting migration {}", name);
 
                 let path = &self.down[name];
                 let content = fs::read_to_string(path).await?;
