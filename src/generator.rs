@@ -9,14 +9,6 @@ pub async fn generate_text(
     text_length: Option<usize>,
     start: Option<String>,
 ) -> anyhow::Result<String> {
-    let text_length = match text_length {
-        Some(length) => length,
-        None => calc_text_length(pool).await?,
-    };
-
-    let mut text = start.unwrap_or_else(|| String::with_capacity(text_length));
-    let mut last_word = text.clone().split(' ').next_back().unwrap().to_string();
-
     let client = pool.get().await?;
     let statement = client
         .prepare_cached(
@@ -28,6 +20,18 @@ pub async fn generate_text(
             "#,
         )
         .await?;
+
+    let text_length = match text_length {
+        Some(length) => length,
+        None => calc_text_length(pool).await?,
+    };
+
+    let mut text = start.map_or_else(
+        || String::with_capacity(text_length),
+        |v| v.trim().to_string(),
+    );
+
+    let mut last_word = text.clone().split(' ').next_back().unwrap().to_string();
 
     while text.len() < text_length {
         let available_entries: Vec<(String, i32)> = client
