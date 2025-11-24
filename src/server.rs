@@ -24,9 +24,10 @@ pub async fn start(state: Arc<AppState>) -> anyhow::Result<()> {
         .layer(CorsLayer::permissive())
         .layer(log_requests())
         .layer(from_fn(add_client_ip))
-        .with_state(state);
+        .with_state(state.clone());
 
-    let addr = SocketAddr::new("0.0.0.0".parse()?, 5049);
+    let settings = &state.settings.server;
+    let addr = SocketAddr::new(settings.host, settings.port);
     let listener = tokio::net::TcpListener::bind(addr).await?;
 
     info!("Starting web server on http://{}", addr);

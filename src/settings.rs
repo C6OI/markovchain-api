@@ -1,10 +1,18 @@
+use std::net::IpAddr;
 use anyhow::Result;
 use config::{Config, ConfigError};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
+    pub server: ServerSettings,
     pub database: DatabaseSettings,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ServerSettings {
+    pub host: IpAddr,
+    pub port: u16
 }
 
 #[derive(Debug, Deserialize)]
