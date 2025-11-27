@@ -4,6 +4,14 @@ use rand::Rng;
 use rand_distr::Distribution;
 use rand_distr::LogNormal;
 
+/// Normalizes a word by converting to lowercase and removing special characters
+fn normalize_word(word: &str) -> String {
+    word.chars()
+        .filter(|c| c.is_alphanumeric())
+        .collect::<String>()
+        .to_lowercase()
+}
+
 pub async fn generate_text(
     pool: &Pool,
     text_length: Option<usize>,
@@ -16,7 +24,7 @@ pub async fn generate_text(
             r#"
             SELECT "to", count
             FROM chain_entries
-            WHERE "from" = $1
+            WHERE from_normalized = $1;
             "#,
         )
         .await?;
@@ -31,11 +39,13 @@ pub async fn generate_text(
         |v| v.trim().to_string(),
     );
 
-    let mut last_word = text.clone().split(' ').next_back().unwrap().to_string();
+    let mut last_word = text.split(' ').next_back().unwrap_or("").to_string();
 
     while text.len() < text_length {
+        let normalized_last_word = normalize_word(&last_word);
+
         let available_entries: Vec<(String, i32)> = client
-            .query(&statement, &[&last_word])
+            .query(&statement, &[&normalized_last_word])
             .await?
             .iter()
             .map(|row| (row.get(0), row.get(1)))
